@@ -6,6 +6,8 @@ import {z} from "zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../ui/form'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
+import { signUp } from '@/lib/auth-client'
+import { toast } from 'sonner'
 
     const RegisterSchema=z.object({
         name:z.string().min(3,"Name must be atleast of 3 characters"),
@@ -18,7 +20,11 @@ import { Button } from '../ui/button'
     })
     type RegisterFormValues=z.infer<typeof RegisterSchema>
 
-export default function RegisterForm() {
+    interface RegisterFormProps{
+        onSuccess?:()=>void
+    }
+
+export default function RegisterForm({onSuccess}:RegisterFormProps) {
 const [isLoading,setIsLoading]=React.useState(false)
 const form= useForm<RegisterFormValues>({
     resolver:zodResolver(RegisterSchema),
@@ -29,9 +35,36 @@ const form= useForm<RegisterFormValues>({
         conformPassword:""
     }
 })
+async function onRegisterSubmit(values:RegisterFormValues){
+    setIsLoading(true)
+    try{
+        const {error}=await signUp.email({
+            name:values.name,
+            email:values.email,
+            password:values.password,
+        })
+        if(error){
+            toast("failed to register user. Please try again later.",{
+                description: new Date().toLocaleString()
+            })
+            return
+        }
+        toast("User registered successfully. Login to continue.",{
+            description: new Date().toLocaleString()
+        })
+        if(onSuccess){
+            onSuccess()
+        }
+    }catch(e){
+        console.log(e)
+    }
+    finally{
+        setIsLoading(false)
+    }
+}
   return (
     <Form {...form}>
-        <form className='space-y-5'>
+        <form onSubmit={form.handleSubmit(onRegisterSubmit)} className='space-y-5'>
                       <FormField
             control={form.control}
             name="name"
@@ -88,7 +121,7 @@ const form= useForm<RegisterFormValues>({
                 </FormItem>
             )}></FormField>
 
-            <Button>Submit</Button>
+            <Button type ="submit" disabled={isLoading}>{isLoading ? "Signing up..." : "Sign Up"}</Button>
         </form>
     </Form>
   )

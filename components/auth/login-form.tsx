@@ -22,9 +22,17 @@ const form= useForm<LoginFormValues>({
         password:""
     }
 })
+async function onLoginSubmit(values:LoginFormValues){
+    setIsLoading(true)
+    try{
+console.log(values)
+    }catch(error){
+
+    }
+}
   return (
     <Form {...form}>
-        <form className='space-y-5'>
+        <form onSubmit={form.handleSubmit(onLoginSubmit)} className='space-y-5'>
             <FormField
             control={form.control}
             name="email"
@@ -52,7 +60,7 @@ const form= useForm<LoginFormValues>({
                     <FormMessage></FormMessage>
                 </FormItem>
             )}></FormField>
-            <Button>Submit</Button>
+            <Button type ="submit" disabled={isLoading}>{isLoading ? "Logging in..." : "Login"}</Button>
         </form>
     </Form>
   )
