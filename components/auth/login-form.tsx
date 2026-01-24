@@ -6,6 +6,9 @@ import {z} from "zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../ui/form'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
+import { signIn } from '@/lib/auth-client'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
     const loginSchema=z.object({
         email: z.email("Enter your email"),
@@ -15,6 +18,7 @@ import { Button } from '../ui/button'
 
 export default function LoginForm() {
 const [isLoading,setIsLoading]=React.useState(false)
+const router= useRouter()
 const form= useForm<LoginFormValues>({
     resolver:zodResolver(loginSchema),
     defaultValues:{
@@ -25,9 +29,31 @@ const form= useForm<LoginFormValues>({
 async function onLoginSubmit(values:LoginFormValues){
     setIsLoading(true)
     try{
-console.log(values)
-    }catch(error){
+        const{error}=await signIn.email({
+            email:values.email,
+            password:values.password,
+            rememberMe:true,
+        })
+        if(error){
+            toast("Failed to login. Please check your credentials and try again.",{
+                description: new Date().toLocaleString()
+            })
+            return
+        }
+        toast("Logged in successfully.",{
+            description: new Date().toLocaleString()
+        })
+        router.push("/")
+        
 
+    }catch(e){
+        toast("An unexpected error occurred. Please try again later.",{
+            description: new Date().toLocaleString()
+        })
+        console.log(e)
+    }
+    finally{
+        setIsLoading(false)
     }
 }
   return (
