@@ -1,24 +1,29 @@
-import { headers } from "next/headers";
+import {getSessionCookie} from "better-auth/cookies"
 import { NextRequest,NextResponse } from "next/server";
-    import { auth } from "./lib/auth";
+
 
 //define protected routes : /profile,/post/create/,/edit/:id
 const protectedRoutes=['/profile','/post/create','/post/edit'];
-export async function middleware(request:NextRequest){
+export async function proxy(request:NextRequest){
     const pathname=request.nextUrl.pathname
-    const session = await auth.api.getSession({
-        headers:await headers()
-    })
+
+    const sessionCookie = getSessionCookie(request)
+
+        if(pathname.startsWith('/auth')&& sessionCookie){
+             console.log('redirecting to home from auth page')
+        return NextResponse.redirect(new URL('/',request.url))
+       
+    }
+
     const isProtectedRoute=protectedRoutes.some(route=>pathname.startsWith(route))
-    if(isProtectedRoute&&!session){
+    if(isProtectedRoute&&!sessionCookie){
+         console.log('redirecting to auth from protected page')
         return NextResponse.redirect(new URL('/auth',request.url))
     }
     //if user is logged in and trying to access auth page redirect to home
-    if(pathname.startsWith('/auth')&&session){
-        return NextResponse.redirect(new URL('/',request.url))
-    }
+
     return NextResponse.next()
 }
 export const config={
-    matcher:['/profile/:path*','/post/create/:path*','/post/edit/:path*','/auth/:path* ']
+    matcher:['/profile/:path*','/post/create','/post/edit/:path*','/auth']
 }

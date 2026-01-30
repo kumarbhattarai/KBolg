@@ -4,8 +4,12 @@ import React from 'react'
 import {cn} from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { useSession } from '@/lib/auth-client'
+import UserMenu from '@/components/auth/user-menu'
+import ThemeToggle from '../theme/theme-toggle'
 
 export default function Header() {
+  const {data:session, isPending}=useSession()
   const navItems=[{
     label:'Home',
     href:'/'
@@ -35,8 +39,12 @@ const router=useRouter()
 </div>
 <div className='flex items-center gap-4'>
 <div className='hidden md:block'> {/* search */} </div>
-<div className="flex items-center gap-2">
-  <Button className='cursor-pointer' onClick={()=>router.push("/auth")}>Login</Button>
+<ThemeToggle></ThemeToggle>
+<div className="flex items-center gap-2 ">
+  {
+  isPending? null :session?.user?<UserMenu user={session.user}/>: <Button className='cursor-pointer' onClick={()=>router.push('/auth')}>Login</Button>
+  }
+
 
 </div>
 
